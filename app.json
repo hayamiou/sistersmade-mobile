@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "sistersmade-mobile",
-    "slug": "sistersmade-mobile",
+    "name": "SistersMade",
+    "slug": "tp-expo-muriel",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "sistersmademobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "fr.cours.tpexpo.muriel"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "fr.cours.tpexpo.muriel"
     },
     "web": {
       "output": "server",
@@ -37,6 +39,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "ynov-webmobile",
+    "extra": {
+      "eas": {
+        "projectId": "3bffded7-8e4b-4391-8b8a-cf3d1b53e378"
+      }
     }
   }
 }
