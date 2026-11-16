@@ -24,3 +24,12 @@
 - Jamais `npm audit fix --force` ; dépendances Expo via `npx expo install`
 - Aucun `eas build` sans décision explicite (crédits dépassés)
 - Jamais d'identifiant Apple dans EAS
+
+## Lundi 16/11 après-midi — Firebase branché
+- ✅ Auth e-mail/mot de passe activée, Firestore créé (europe-west9, mode production, base `(default)`)
+- ✅ `src/services/firebase.ts` : Auth persistante (AsyncStorage) + Firestore, config via `.env`
+- ✅ Testé sur iPhone : log `[firebase] connecté au projet : sistersmade-91aa4`
+- ℹ️ `tsconfig.json` : chemin `@firebase/auth` → `index.rn.d.ts` (sinon TS ne voit pas `getReactNativePersistence`)
+- ℹ️ `import "@/services/firebase"` temporaire dans `_layout.tsx` (remplacé par le hook d'auth mardi)
+- 🧾 Dette : erreur TS dans `src/components/app-tabs.web.tsx` (template Expo, web uniquement)
+- 🧾 Dette : 7 vulnérabilités npm, ne PAS faire `npm audit fix --force`
