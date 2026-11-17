@@ -67,3 +67,41 @@
 - **Alternatives** : document externe (risque de décalage avec le code).
 - **Conséquences** : chaque décision structurante ajoute une entrée ici.
 - **À revalider si** : —
+
+---
+
+## ADR-007 — Amendement du 17/11/2026 : réutilisation de l'identité du TP
+
+**Contexte.** Créer un nouvel App ID Apple et un nouveau profil de provisioning demande une intervention de l'enseignant (compte Apple de l'école) et du temps, à 4 jours de la soutenance.
+
+**Décision.** Le projet réutilise l'identité du TP Expo :
+- bundle id iOS / package Android : `fr.cours.tpexpo.muriel` (variante `.preview`) ;
+- projet EAS : `ynov-webmobile/tp-expo-muriel` (`projectId` 3bffded7-…) ;
+- `app.config.js` et `eas.json` repris du TP à l'identique.
+Le nom affiché reste « SistersMade » (`(dev)` / `(preview)` selon la variante).
+
+**Conséquences.**
+- ✅ Le profil de provisioning existant (avec l'UDID de l'iPhone de test) reste valable.
+- ⚠️ Le `slug` doit rester `tp-expo-muriel` : EAS refuse un slug différent de celui lié au `projectId`.
+- ⚠️ Le profil n'inclut pas la capacité Push : pas de notifications distantes sans nouvelle démarche.
+- 🔁 En 2027 (projet RNCP), identité dédiée `SistersMade` à créer.
+
+---
+
+## ADR-009 — Stratégie de branches, conventions de commit et suivi des tickets
+
+**Contexte.** SistersMade devient le projet de fin d'études RNCP 7 (2027). L'historique Git doit montrer une méthode de travail d'équipe, même en développant seule.
+
+**Décision.**
+- **Git flow allégé** :
+  - `main` : versions stables uniquement, taguées (`v0.1.0` = soutenance mobile) ;
+  - `develop` : branche d'intégration, branche par défaut sur GitHub ;
+  - `feature/SM-XX-…`, `fix/SM-XX-…`, `docs/SM-XX-…` : une branche par ticket, créée depuis `develop`, fusionnée par Pull Request.
+- **Conventional Commits** : `type(scope): description [SM-XX]`, avec `type` ∈ feat, fix, docs, chore, refactor, test, style.
+- **Tickets Notion** (base « Tickets SistersMade ») : identifiant `SM-XX`, reporté dans la branche, le commit et la PR.
+- Pas de branches `release/` ni `hotfix/` à ce stade : réévaluation pour le projet RNCP.
+
+**Conséquences.**
+- ✅ Chaque ligne de code remonte à un ticket, donc à un besoin.
+- ✅ Les PR documentent le *pourquoi* des changements.
+- ℹ️ Les 3 premiers commits (`cd6f4da`, `2ebb9d9`, `dd58fe8`) sont antérieurs à la convention : l'historique n'est pas réécrit.

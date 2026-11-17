@@ -54,3 +54,13 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Contribuer
+
+1. Prendre un ticket `SM-XX` dans Notion et le passer en « En cours ».
+2. Créer la branche depuis `develop` : `git switch develop && git pull && git switch -c feature/SM-XX-description`.
+3. Committer au format Conventional Commits : `feat(auth): inscription par e-mail [SM-10]`.
+4. Pousser, ouvrir une Pull Request vers `develop`, passer le ticket en « En revue ».
+5. Après fusion : ticket « Terminé », branche supprimée.
+
+Voir `docs/DECISIONS.md` (ADR-009) pour le détail.
