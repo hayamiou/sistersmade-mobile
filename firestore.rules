@@ -1,0 +1,39 @@
+rules_version = '2';
+// Règles de sécurité Firestore — SistersMade.
+// Principe : tout est INTERDIT sauf ce qui est explicitement autorisé ici.
+// Chaque collection reçoit ses règles dans le ticket qui l'utilise.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estConnectee() { return request.auth != null; }
+    function estElle(uid) { return estConnectee() && request.auth.uid == uid; }
+    function pseudoValide(d) {
+      return d.pseudo is string && d.pseudo.size() >= 2 && d.pseudo.size() <= 30;
+    }
+
+    // ---- utilisatrices/{uid} (SM-10) ----
+    match /utilisatrices/{uid} {
+      // Lire un profil : toute utilisatrice connectée (pour afficher les pseudos).
+      allow read: if estConnectee();
+
+      // Créer : seulement SON profil, avec exactement les champs prévus,
+      // un solde à 0, non vérifiée, et la date fixée par le SERVEUR.
+      allow create: if estElle(uid)
+        && request.resource.data.keys().hasOnly(['pseudo','bio','competences','commune','soldeHeures','verification','creeLe'])
+        && request.resource.data.keys().hasAll(['pseudo','bio','competences','commune','soldeHeures','verification','creeLe'])
+        && pseudoValide(request.resource.data)
+        && request.resource.data.soldeHeures == 0
+        && request.resource.data.verification == 'non_verifiee'
+        && request.resource.data.creeLe == request.time;
+
+      // Modifier : seulement SON profil, et jamais le solde, la vérification
+      // ni la date de création. (L'échange QR aura sa propre règle, SM-19.)
+      allow update: if estElle(uid)
+        && pseudoValide(request.resource.data)
+        && !request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['soldeHeures','verification','creeLe']);
+
+      allow delete: if false;
+    }
+  }
+}
