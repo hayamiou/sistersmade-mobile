@@ -2,31 +2,24 @@
  * src/app/(auth)/inscription.tsx  →  route « /inscription »
  *
  * Écran d'inscription : pseudo, e-mail, mot de passe.
- * L'écran ne connaît PAS Firebase : il appelle le service auth (ADR-001).
+ * - L'écran ne connaît PAS Firebase : il appelle le service auth (ADR-001).
+ * - Les champs, le bouton et l'erreur sont des composants réutilisables
+ *   (src/components/ui), accessibles par défaut.
  */
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  useColorScheme,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
+import { Bouton } from "@/components/ui/bouton";
+import { ChampTexte } from "@/components/ui/champ-texte";
+import { MessageErreur } from "@/components/ui/message-erreur";
+import { MaxContentWidth, Spacing } from "@/constants/theme";
 import { inscrire, messageErreur, MOT_DE_PASSE_MIN, validerInscription } from "@/services/auth";
 
 export default function InscriptionScreen() {
-  const schema = useColorScheme();
-  const couleurs = Colors[schema === "dark" ? "dark" : "light"];
-
   // Un état par champ (« composants contrôlés ») : l'écran est la source de vérité.
   const [pseudo, setPseudo] = useState("");
   const [email, setEmail] = useState("");
@@ -44,8 +37,7 @@ export default function InscriptionScreen() {
       return;
     }
 
-    // 2. Appel au service. Le bouton est désactivé pendant l'envoi :
-    //    impossible de créer deux comptes par double appui.
+    // 2. Appel au service. Le Bouton se bloque pendant l'envoi (prop `chargement`).
     setErreur(null);
     setEnvoiEnCours(true);
     try {
@@ -58,9 +50,6 @@ export default function InscriptionScreen() {
       setEnvoiEnCours(false);
     }
   }
-
-  // Style commun aux champs, adapté au mode clair / sombre.
-  const styleChamp = [styles.champ, { color: couleurs.text, borderColor: couleurs.backgroundElement }];
 
   return (
     <ThemedView style={styles.conteneur}>
@@ -75,74 +64,43 @@ export default function InscriptionScreen() {
               L'entraide entre femmes, où le temps est la monnaie.
             </ThemedText>
 
-            <ThemedText>Pseudo</ThemedText>
-            <TextInput
-              style={styleChamp}
+            <ChampTexte
+              libelle="Pseudo"
+              aide="Visible par les autres membres. Pas besoin de ton vrai prénom."
               value={pseudo}
               onChangeText={setPseudo}
               placeholder="Ex. : Lune_du_quartier"
-              placeholderTextColor="#888"
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={30}
-              accessibilityLabel="Pseudo"
-              accessibilityHint="Visible par les autres membres. Pas besoin de ton vrai prénom."
             />
 
-            <ThemedText>Adresse e-mail</ThemedText>
-            <TextInput
-              style={styleChamp}
+            <ChampTexte
+              libelle="Adresse e-mail"
               value={email}
               onChangeText={setEmail}
               placeholder="toi@exemple.fr"
-              placeholderTextColor="#888"
               autoCapitalize="none"
               autoCorrect={false}
               keyboardType="email-address"
               textContentType="emailAddress"
               autoComplete="email"
-              accessibilityLabel="Adresse e-mail"
             />
 
-            <ThemedText>Mot de passe</ThemedText>
-            <TextInput
-              style={styleChamp}
+            <ChampTexte
+              libelle="Mot de passe"
+              aide={`${MOT_DE_PASSE_MIN} caractères minimum`}
               value={motDePasse}
               onChangeText={setMotDePasse}
               placeholder={`${MOT_DE_PASSE_MIN} caractères minimum`}
-              placeholderTextColor="#888"
               secureTextEntry
               textContentType="newPassword"
               autoComplete="new-password"
-              accessibilityLabel="Mot de passe"
-              accessibilityHint={`${MOT_DE_PASSE_MIN} caractères minimum`}
             />
 
-            {/* accessibilityRole="alert" : VoiceOver annonce l'erreur dès qu'elle apparaît. */}
-            {erreur && (
-              <ThemedText style={styles.erreur} accessibilityRole="alert">
-                {erreur}
-              </ThemedText>
-            )}
+            <MessageErreur message={erreur} />
 
-            <Pressable
-              onPress={valider}
-              disabled={envoiEnCours}
-              style={({ pressed }) => [
-                styles.bouton,
-                { backgroundColor: couleurs.text, opacity: pressed || envoiEnCours ? 0.6 : 1 },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel="Créer mon compte"
-              accessibilityState={{ disabled: envoiEnCours, busy: envoiEnCours }}>
-              {envoiEnCours ? (
-                <ActivityIndicator color={couleurs.background} />
-              ) : (
-                <ThemedText style={[styles.texteBouton, { color: couleurs.background }]}>
-                  Créer mon compte
-                </ThemedText>
-              )}
-            </Pressable>
+            <Bouton libelle="Créer mon compte" onPress={valider} chargement={envoiEnCours} />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -157,9 +115,4 @@ const styles = StyleSheet.create({
   contenu: { padding: Spacing.four, gap: Spacing.three },
   titre: { textAlign: "center" },
   sousTitre: { textAlign: "center", marginBottom: Spacing.three },
-  champ: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16 },
-  erreur: { color: "#D93025" },
-  // minHeight 48 : zone tactile confortable (accessibilité).
-  bouton: { marginTop: Spacing.three, minHeight: 48, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  texteBouton: { fontWeight: "600" },
 });
