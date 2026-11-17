@@ -7,6 +7,7 @@ import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WebBadge } from '@/components/web-badge';
+import { Link } from 'expo-router';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 
 function getDevMenuHint() {
@@ -54,6 +55,11 @@ export default function HomeScreen() {
             hint={<ThemedText type="code">npm run reset-project</ThemedText>}
           />
         </ThemedView>
+
+        {/* TEMPORAIRE (SM-10) : accès à l'inscription en attendant la garde de SM-12 */}
+        <Link href="/inscription">
+          <ThemedText type="code">→ Inscription</ThemedText>
+        </Link>
 
         {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>

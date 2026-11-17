@@ -33,3 +33,12 @@
 - ℹ️ `import "@/services/firebase"` temporaire dans `_layout.tsx` (remplacé par le hook d'auth mardi)
 - 🧾 Dette : erreur TS dans `src/components/app-tabs.web.tsx` (template Expo, web uniquement)
 - 🧾 Dette : 7 vulnérabilités npm, ne PAS faire `npm audit fix --force`
+
+## Mardi 17/11 — méthode, modèle, auth
+- ✅ SM-6 : ADR-007 amendé + ADR-009 (Git flow allégé, Conventional Commits, tickets Notion) → PR #1
+- ✅ SM-9 : types du domaine (`src/types/categories.ts`, `src/types/modeles.ts`) → PR #2 (squash)
+- ✅ Décisions : pseudo, 10 catégories (2 max par demande), crédit mutuel (0 h, découvert −2 h), inclusion & accessibilité dans la Définition de « Terminé »
+- 🔄 SM-10 : navigation restructurée (pile racine + groupes `(onglets)` / `(auth)`), `firestore.rules` (utilisatrices), `src/constants/banque-temps.ts`, service `auth.ts`, écran d'inscription
+- ℹ️ Grille analysée : swipe obligatoire (SM-24 → P0), composants UI réutilisables (P0), ESLint/Prettier (P1), préparation de la démo (P0)
+- ℹ️ Documents de référence (projet Claude) : carnet de bord, analyse du cours et de l'évaluation, prompt de reprise
+- 🧾 Temporaire à retirer en SM-12 : lien « → Inscription » dans `(onglets)/index.tsx`, import de Firebase dans `_layout.tsx`
