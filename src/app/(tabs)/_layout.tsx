@@ -1,9 +1,9 @@
 /**
- * src/app/(onglets)/_layout.tsx
+ * src/app/(tabs)/_layout.tsx
  *
- * Groupe « (onglets) » : la partie de l'appli réservée aux utilisatrices
+ * Groupe « (tabs) » : la partie de l'appli réservée aux utilisatrices
  * connectées (la garde arrive avec SM-12). Les parenthèses font que ce
- * dossier n'apparaît pas dans l'URL : (onglets)/index.tsx répond à « / ».
+ * dossier n'apparaît pas dans l'URL : (tabs)/index.tsx répond à « / ».
  */
 import AppTabs from "@/components/app-tabs";
 
