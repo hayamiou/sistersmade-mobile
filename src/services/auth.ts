@@ -6,12 +6,18 @@
  * inscrire(), messageErreur()… sans savoir que Firebase existe (ADR-001).
  */
 import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword, deleteUser } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { SOLDE_INITIAL } from "@/constants/banque-temps";
 import { auth, db } from "@/services/firebase";
-import type { Utilisatrice } from "@/types/modeles";
+import type { Uid, Utilisatrice } from "@/types/modeles";
 
 /** Ce que l'écran d'inscription transmet. */
 export interface DonneesInscription {
@@ -100,6 +106,8 @@ const MESSAGES: Record<string, string> = {
   "auth/weak-password": "Ce mot de passe est trop faible.",
   "auth/network-request-failed": "Pas de connexion internet. Réessaie dans un instant.",
   "auth/too-many-requests": "Trop de tentatives. Patiente quelques minutes.",
+    "auth/invalid-credential": "E-mail ou mot de passe incorrect.",
+  "auth/user-disabled": "Ce compte a été suspendu. Contacte l'équipe SistersMade.",
   // Erreur Firestore (pas de préfixe « auth/ ») : règles de sécurité.
   "permission-denied": "Le serveur a refusé l'opération.",
 };
@@ -111,4 +119,59 @@ export function messageErreur(erreur: unknown): string {
     return MESSAGES[erreur.code] ?? `Une erreur est survenue (${erreur.code}).`;
   }
   return "Une erreur inattendue est survenue.";
+}
+
+/* ------------------------------------------------------------------ */
+/* CONNEXION / DÉCONNEXION / SESSION                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * NOTRE représentation d'une session : volontairement minimale.
+ * On n'expose PAS le type `User` de Firebase au reste de l'appli (ADR-001) :
+ * si demain on change de fournisseur d'auth, seuls les services bougent.
+ */
+export interface Session {
+  uid: Uid;
+  email: string | null;
+}
+
+/** Ce que l'écran de connexion transmet. */
+export interface DonneesConnexion {
+  email: string;
+  motDePasse: string;
+}
+
+/**
+ * Validation locale minimale : on vérifie juste que rien n'est vide.
+ * Pas de règle de longueur ici : c'est Firebase qui dira si le couple
+ * e-mail / mot de passe est bon. Retourne un message, ou null si OK.
+ */
+export function validerConnexion({ email, motDePasse }: DonneesConnexion): string | null {
+  if (email.trim() === "") return "Indique ton adresse e-mail.";
+  if (motDePasse === "") return "Indique ton mot de passe.";
+  return null;
+}
+
+/** Connecte l'utilisatrice. Lève une erreur Firebase en cas d'échec (→ messageErreur). */
+export async function seConnecter({ email, motDePasse }: DonneesConnexion): Promise<void> {
+  // trim() sur l'e-mail seulement : un espace dans un mot de passe est un vrai caractère.
+  await signInWithEmailAndPassword(auth, email.trim(), motDePasse);
+}
+
+/** Déconnecte l'utilisatrice (la session persistée dans AsyncStorage est effacée). */
+export async function seDeconnecter(): Promise<void> {
+  await signOut(auth);
+}
+
+/**
+ * S'abonne aux changements de session (connexion, déconnexion, réouverture
+ * de l'appli avec une session persistée).
+ * - Le rappel reçoit NOTRE type Session (ou null), jamais le User Firebase.
+ * - Retourne la fonction de désabonnement : à appeler au démontage
+ *   (c'est exactement ce qu'attend le return d'un useEffect).
+ */
+export function ecouterSession(rappel: (session: Session | null) => void): () => void {
+  return onAuthStateChanged(auth, (utilisateur) => {
+    rappel(utilisateur ? { uid: utilisateur.uid, email: utilisateur.email } : null);
+  });
 }
