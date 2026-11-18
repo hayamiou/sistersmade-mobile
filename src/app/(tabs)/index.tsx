@@ -6,9 +6,11 @@ import { AnimatedIcon } from '@/components/animated-icon';
 import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Bouton } from '@/components/ui/bouton';
 import { WebBadge } from '@/components/web-badge';
-import { Link } from 'expo-router';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth';
+import { seDeconnecter } from '@/services/auth';
 
 function getDevMenuHint() {
   if (Platform.OS === 'web') {
@@ -30,6 +32,9 @@ function getDevMenuHint() {
 }
 
 export default function HomeScreen() {
+  // TEMPORAIRE (SM-12) : la garde garantit qu'on n'arrive ici que connectée.
+  const { session } = useAuth();
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -56,10 +61,10 @@ export default function HomeScreen() {
           />
         </ThemedView>
 
-        {/* TEMPORAIRE (SM-10) : accès à l'inscription en attendant la garde de SM-12 */}
-        <Link href="/inscription">
-          <ThemedText type="code">→ Inscription</ThemedText>
-        </Link>
+        {/* TEMPORAIRE (SM-12) : bouton de déconnexion pour tester la garde,
+            en attendant l'écran « Mon espace » (SM-36), qui le remplacera. */}
+        <ThemedText type="small">Connectée : {session?.email ?? '…'}</ThemedText>
+        <Bouton libelle="Me déconnecter" variante="secondaire" onPress={() => void seDeconnecter()} />
 
         {Platform.OS === 'web' && <WebBadge />}
       </SafeAreaView>

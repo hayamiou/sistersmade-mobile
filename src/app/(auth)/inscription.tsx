@@ -42,8 +42,6 @@ export default function InscriptionScreen() {
     setEnvoiEnCours(true);
     try {
       await inscrire(donnees);
-      // replace (et non push) : on ne doit pas pouvoir « revenir » à l'inscription.
-      router.replace("/");
     } catch (e) {
       setErreur(messageErreur(e));
     } finally {
@@ -100,7 +98,14 @@ export default function InscriptionScreen() {
 
             <MessageErreur message={erreur} />
 
-            <Bouton libelle="Créer mon compte" onPress={valider} chargement={envoiEnCours} />
+                        <Bouton libelle="Créer mon compte" onPress={valider} chargement={envoiEnCours} />
+
+            <Bouton
+              libelle="Déjà inscrite ? Me connecter"
+              variante="secondaire"
+              onPress={() => router.back()}
+              desactive={envoiEnCours}
+            />
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
