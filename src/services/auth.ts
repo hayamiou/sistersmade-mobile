@@ -18,6 +18,7 @@ import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { SOLDE_INITIAL } from "@/constants/banque-temps";
 import { auth, db } from "@/services/firebase";
 import type { Uid, Utilisatrice } from "@/types/modeles";
+import { ErreurMetier } from "@/services/erreurs";
 
 /** Ce que l'écran d'inscription transmet. */
 export interface DonneesInscription {
@@ -117,6 +118,9 @@ export function messageErreur(erreur: unknown): string {
   if (erreur instanceof FirebaseError) {
     // On garde le code entre parenthèses pour nous aider à déboguer.
     return MESSAGES[erreur.code] ?? `Une erreur est survenue (${erreur.code}).`;
+  }
+  if (erreur instanceof ErreurMetier) {
+    return erreur.message; // message déjà écrit pour l'utilisatrice
   }
   return "Une erreur inattendue est survenue.";
 }

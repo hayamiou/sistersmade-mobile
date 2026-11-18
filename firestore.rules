@@ -11,6 +11,21 @@ service cloud.firestore {
       return d.pseudo is string && d.pseudo.size() >= 2 && d.pseudo.size() <= 30;
     }
 
+    // Profil de l'utilisatrice qui fait la requête (1 lecture facturée par appel).
+    function monProfil() {
+      return get(/databases/$(database)/documents/utilisatrices/$(request.auth.uid)).data;
+    }
+
+    // Mêmes règles que src/services/demandes.ts (À GARDER SYNCHRONISÉES).
+    function demandeValide(d) {
+      return d.titre is string && d.titre.size() >= 5 && d.titre.size() <= 80
+        && d.description is string && d.description.size() >= 10 && d.description.size() <= 1000
+        && d.categories is list && d.categories.size() >= 1 && d.categories.size() <= 2
+        && d.categories.hasOnly(['pas_seule','paperasse','carriere','argent','numerique',
+                                 'reparer','relais','apprendre','bouger','sortir'])
+        && d.dureeEstimee in [0.5, 1, 1.5, 2, 3, 4, 8];
+    }
+
     // ---- utilisatrices/{uid} (SM-10) ----
     match /utilisatrices/{uid} {
       // Lire un profil : toute utilisatrice connectée (pour afficher les pseudos).
@@ -34,6 +49,30 @@ service cloud.firestore {
               .hasAny(['soldeHeures','verification','creeLe']);
 
       allow delete: if false;
+    }
+
+    // ---- demandes/{id} (SM-14) ----
+    match /demandes/{id} {
+      // Lire : toute utilisatrice connectée (liste des demandes du quartier).
+      allow read: if estConnectee();
+
+      // Publier : en SON nom, sous SON pseudo, avec exactement les champs prévus,
+      // ouverte, sans aidante, datée par le SERVEUR, et dans la limite du découvert.
+      allow create: if estConnectee()
+        && request.resource.data.keys().hasOnly(['autriceId','autricePseudo','titre','description','categories','dureeEstimee','commune','statut','aidanteId','creeLe'])
+        && request.resource.data.keys().hasAll(['autriceId','autricePseudo','titre','description','categories','dureeEstimee','commune','statut','aidanteId','creeLe'])
+        && request.resource.data.autriceId == request.auth.uid
+        && request.resource.data.autricePseudo == monProfil().pseudo
+        && demandeValide(request.resource.data)
+        && request.resource.data.commune == null
+        && request.resource.data.statut == 'ouverte'
+        && request.resource.data.aidanteId == null
+        && request.resource.data.creeLe == request.time
+        // Crédit mutuel : solde - durée >= -2 h (DECOUVERT_MAX_HEURES)
+        && monProfil().soldeHeures - request.resource.data.dureeEstimee >= -2;
+
+      // Modifier / supprimer : viendront avec l'échange (SM-18 / SM-19).
+      allow update, delete: if false;
     }
   }
 }
