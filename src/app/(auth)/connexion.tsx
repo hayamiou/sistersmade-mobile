@@ -39,8 +39,6 @@ export default function ConnexionScreen() {
     setEnvoiEnCours(true);
     try {
       await seConnecter(donnees);
-      // replace : une fois connectée, « retour » ne doit pas ramener ici.
-      router.replace("/");
     } catch (e) {
       // Mauvais identifiants → « E-mail ou mot de passe incorrect. »
       // (volontairement sans préciser lequel : voir MESSAGES dans auth.ts)
