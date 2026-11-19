@@ -2,10 +2,12 @@
  * src/app/(tabs)/index.tsx  →  route « / » (onglet Accueil)
  *
  * Liste des demandes d'entraide, en temps réel.
- * - États de la grille : chargement, erreur, vide, succès.
+ * - États de la grille : chargement, erreur, vide, succès… et hors ligne (SM-21).
  * - Geste (SM-24) : glisser une carte vers la droite → « Je peux aider »,
- *   avec un bouton équivalent sous chaque carte (accessibilité).
- * L'écran ne connaît pas Firestore : il passe par le hook et le service.
+ *   avec un bouton équivalent dans chaque carte (accessibilité).
+ * - Hors ligne : bandeau explicatif, dernière liste enregistrée affichée,
+ *   actions d'écriture désactivées (elles ne pourraient pas aboutir).
+ * L'écran ne connaît ni Firestore ni le cache : il passe par le hook et les services.
  */
 import { router } from "expo-router";
 import { useState } from "react";
@@ -20,22 +22,28 @@ import { MessageErreur } from "@/components/ui/message-erreur";
 import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import { useAuth } from "@/contexts/auth";
 import { useDemandes } from "@/hooks/use-demandes";
+import { useTheme } from "@/hooks/use-theme";
 import { messageErreur, seDeconnecter } from "@/services/auth";
 import { proposerAide } from "@/services/demandes";
 import type { Demande } from "@/types/modeles";
 
 export default function AccueilScreen() {
   const { session } = useAuth();
-  const { demandes, chargement, erreur } = useDemandes();
+  const { demandes, chargement, erreur, horsLigne } = useDemandes();
+  const couleurs = useTheme();
 
   // Action « Je peux aider » : id de la demande en cours d'envoi, + retours.
   const [aideEnvoi, setAideEnvoi] = useState<string | null>(null);
   const [erreurAide, setErreurAide] = useState<string | null>(null);
   const [succesAide, setSuccesAide] = useState<string | null>(null);
 
-  /** Peut-on se proposer ? Pas sur sa propre demande, ni sur une demande prise. */
+  /**
+   * Peut-on se proposer ? Pas sur sa propre demande, ni sur une demande prise,
+   * ni hors ligne (l'écriture resterait en attente sans fin).
+   */
   function peutAider(demande: Demande): boolean {
     return (
+      !horsLigne &&
       session !== null &&
       demande.autriceId !== session.uid &&
       demande.statut === "ouverte" &&
@@ -75,13 +83,31 @@ export default function AccueilScreen() {
           )}
           contentContainerStyle={styles.liste}
           ItemSeparatorComponent={() => <View style={styles.separateur} />}
-          // En-tête : titre + action principale + retours de l'action « aider ».
+          // En-tête : titre + bandeau hors ligne + action principale + retours.
           ListHeaderComponent={
             <View style={styles.entete}>
               <ThemedText type="title" accessibilityRole="header">
                 Demandes d'entraide
               </ThemedText>
-              <Bouton libelle="Publier une demande" onPress={() => router.push("/publier")} />
+
+              {/* Hors ligne : TEXTE explicite (jamais la couleur seule), annoncé par VoiceOver. */}
+              {horsLigne && (
+                <View
+                  style={[styles.bandeau, { backgroundColor: couleurs.backgroundSelected }]}
+                  accessible
+                  accessibilityRole="alert">
+                  <ThemedText style={styles.bandeauTexte}>
+                    📡 Hors connexion : tu vois les dernières demandes enregistrées. Publier et
+                    proposer ton aide reviendront avec le réseau.
+                  </ThemedText>
+                </View>
+              )}
+
+              <Bouton
+                libelle="Publier une demande"
+                onPress={() => router.push("/publier")}
+                desactive={horsLigne}
+              />
               <ThemedText type="small">
                 Astuce : glisse une demande vers la droite pour proposer ton aide.
               </ThemedText>
@@ -103,7 +129,9 @@ export default function AccueilScreen() {
               />
             ) : erreur ? undefined : (
               <ThemedText style={styles.etat}>
-                Aucune demande pour l'instant. Et si tu publiais la première ? 🌱
+                {horsLigne
+                  ? "Aucune demande enregistrée sur ce téléphone pour l'instant."
+                  : "Aucune demande pour l'instant. Et si tu publiais la première ? 🌱"}
               </ThemedText>
             )
           }
@@ -127,6 +155,8 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.four, // ne pas passer sous la barre d'onglets
   },
   entete: { gap: Spacing.three, marginBottom: Spacing.four },
+  bandeau: { borderRadius: 12, padding: Spacing.three },
+  bandeauTexte: { fontWeight: "600" },
   separateur: { height: Spacing.four },
   etat: { marginTop: Spacing.four, textAlign: "center" },
   succes: { fontWeight: "600" },
