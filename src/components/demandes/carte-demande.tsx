@@ -4,7 +4,7 @@
  * Carte d'une demande dans la liste. Composant PUR : il reçoit une Demande
  * et l'affiche, sans état ni appel réseau (mêmes props → même rendu).
  * Accessible : la carte est lue d'un seul bloc par VoiceOver, avec une
- * phrase complète (titre, autrice, durée, catégorie).
+ * phrase complète (titre, autrice, durée, catégorie, statut).
  */
 import { StyleSheet, useColorScheme, View } from "react-native";
 
@@ -27,11 +27,20 @@ export function CarteDemande({ demande }: Props) {
   const duree = libelleDuree(demande.dureeEstimee);
   const date = demande.creeLe.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
 
+  // Statut affiché en TEXTE + emoji (jamais par la couleur seule).
+  const statut =
+    demande.statut === "en_cours"
+      ? "🤝 Une aidante s'est proposée"
+      : demande.statut === "terminee"
+        ? "✅ Terminée"
+        : null; // « ouverte » : rien à signaler
+
   // Une phrase complète pour VoiceOver, au lieu de 5 éléments lus séparément.
   const annonce =
     `${demande.titre}. Demandée par ${demande.autricePseudo}, le ${date}. ` +
     `Durée estimée : ${duree}.` +
-    (principale ? ` Catégorie : ${principale.libelle}.` : "");
+    (principale ? ` Catégorie : ${principale.libelle}.` : "") +
+    (statut ? ` ${statut}.` : "");
 
   return (
     <View
@@ -48,6 +57,7 @@ export function CarteDemande({ demande }: Props) {
       <ThemedText type="small" style={{ color: couleurs.textSecondary }}>
         {demande.autricePseudo} · {duree} · {date}
       </ThemedText>
+      {statut && <ThemedText type="small" style={styles.statut}>{statut}</ThemedText>}
     </View>
   );
 }
@@ -59,4 +69,5 @@ const styles = StyleSheet.create({
     gap: Spacing.one,
   },
   titre: { fontWeight: "600" },
+  statut: { fontWeight: "600" },
 });
