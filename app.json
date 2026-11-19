@@ -4,11 +4,11 @@
     "slug": "tp-expo-muriel",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon-sistersmade.png",
     "scheme": "sistersmademobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon-sistersmade.png",
       "bundleIdentifier": "fr.cours.tpexpo.muriel",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -33,9 +33,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#FEFAF2",
+          "image": "./assets/images/splash-sistersmade.png",
+          "imageWidth": 240
         }
       ],
       "expo-background-task",
