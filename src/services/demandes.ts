@@ -5,13 +5,24 @@
  * Les écrans appellent validerDemande() / publierDemande() sans savoir
  * que Firebase existe (ADR-001).
  */
-import { addDoc, collection, doc, getDoc, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  Timestamp,
+} from "firebase/firestore";
 
 import { DECOUVERT_MAX_HEURES } from "@/constants/banque-temps";
 import { ErreurMetier } from "@/services/erreurs";
 import { db } from "@/services/firebase";
 import { estCategorie, NB_MAX_CATEGORIES } from "@/types/categories";
-import type { Demande, NouvelleDemande, Uid } from "@/types/modeles";
+import type { Commune, Demande, NouvelleDemande, StatutDemande, Uid } from "@/types/modeles";
 
 /* ------------------------------------------------------------------ */
 /* RÈGLES MÉTIER — identiques à firestore.rules (à garder synchronisées) */
@@ -110,4 +121,80 @@ export async function publierDemande(autriceId: Uid, d: NouvelleDemande): Promis
     creeLe: serverTimestamp(), // l'heure du SERVEUR, pas celle du téléphone
   });
   return ref.id;
+}
+
+/* ------------------------------------------------------------------ */
+/* LECTURE — liste des demandes en temps réel                          */
+/* ------------------------------------------------------------------ */
+
+/** Nombre maximum de demandes chargées (les plus récentes d'abord). */
+const LIMITE_LISTE = 50;
+
+const STATUTS: readonly StatutDemande[] = ["ouverte", "en_cours", "terminee"];
+
+/** Type guard : une valeur venue de Firestore est-elle une Commune valide ? */
+function estCommune(v: unknown): v is Commune {
+  return (
+    typeof v === "object" && v !== null &&
+    "nom" in v && typeof v.nom === "string" &&
+    "codeInsee" in v && typeof v.codeInsee === "string"
+  );
+}
+
+/**
+ * Convertit un document Firestore en Demande, ou null s'il est mal formé.
+ * On ne fait PAS confiance aux données externes (cours, chap. 2) : chaque
+ * champ est vérifié, et le Timestamp Firestore devient une Date (ADR-001).
+ */
+function versDemande(id: string, d: Record<string, unknown>): Demande | null {
+  const { autriceId, autricePseudo, titre, description, categories, dureeEstimee, statut, aidanteId, creeLe } = d;
+  if (
+    typeof autriceId !== "string" ||
+    typeof autricePseudo !== "string" ||
+    typeof titre !== "string" ||
+    typeof description !== "string" ||
+    !Array.isArray(categories) || !categories.every(estCategorie) ||
+    typeof dureeEstimee !== "number" ||
+    !STATUTS.some((s) => s === statut) ||
+    !(aidanteId === null || typeof aidanteId === "string") ||
+    !(creeLe instanceof Timestamp)
+  ) {
+    return null;
+  }
+  return {
+    id,
+    autriceId,
+    autricePseudo,
+    titre,
+    description,
+    categories,
+    dureeEstimee,
+    commune: estCommune(d.commune) ? d.commune : null,
+    statut: statut as StatutDemande, // vérifié juste au-dessus par STATUTS.some
+    aidanteId,
+    creeLe: creeLe.toDate(),
+  };
+}
+/**
+ * S'abonne aux demandes, les plus récentes d'abord, en TEMPS RÉEL :
+ * une demande publiée par une voisine apparaît sans rafraîchir.
+ * Retourne la fonction de désabonnement (à rendre dans un useEffect).
+ */
+export function ecouterDemandes(
+  surDonnees: (demandes: Demande[]) => void,
+  surErreur: (erreur: unknown) => void,
+): () => void {
+  const q = query(collection(db, "demandes"), orderBy("creeLe", "desc"), limit(LIMITE_LISTE));
+  return onSnapshot(
+    q,
+    (instantane) => {
+      const demandes = instantane.docs
+        // "estimate" : une demande qu'on vient de publier a déjà une date
+        // estimée, en attendant celle du serveur (sinon creeLe serait null).
+        .map((document) => versDemande(document.id, document.data({ serverTimestamps: "estimate" })))
+        .filter((demande): demande is Demande => demande !== null);
+      surDonnees(demandes);
+    },
+    surErreur,
+  );
 }
