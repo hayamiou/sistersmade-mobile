@@ -10,6 +10,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -189,7 +190,7 @@ export function ecouterDemandes(
   surDonnees: (demandes: Demande[]) => void,
   surErreur: (erreur: unknown) => void,
 ): () => void {
-  const q = query(collection(db, "demandes"), orderBy("creeLe", "desc"), limit(LIMITE_LISTE));
+  const q = requeteListe();
   return onSnapshot(
     q,
     (instantane) => {
@@ -228,4 +229,25 @@ export async function proposerAide(demande: Demande, aidanteId: Uid): Promise<vo
     aidanteId,
     statut: "en_cours",
   });
+}
+
+/**
+ * La requête de la liste, écrite UNE fois et partagée par l'écoute en temps réel
+ * (ecouterDemandes) et le chargement ponctuel (chargerDemandes) :
+ * impossible que les deux divergent (tri, limite).
+ */
+function requeteListe() {
+  return query(collection(db, "demandes"), orderBy("creeLe", "desc"), limit(LIMITE_LISTE));
+}
+
+/**
+ * Charge la liste UNE fois, sans abonnement (SM-23 : utilisé par la tâche de fond,
+ * qui n'a ni écran ni durée de vie pour garder un abonnement ouvert).
+ * Mêmes garanties que l'écoute : chaque document passe par le type guard versDemande.
+ */
+export async function chargerDemandes(): Promise<Demande[]> {
+  const instantane = await getDocs(requeteListe());
+  return instantane.docs
+    .map((document) => versDemande(document.id, document.data({ serverTimestamps: "estimate" })))
+    .filter((demande): demande is Demande => demande !== null);
 }

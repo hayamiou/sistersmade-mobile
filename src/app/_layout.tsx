@@ -12,10 +12,15 @@
  *
  * Police des titres (SM-8) : chargée ICI, avant tout écran, pour éviter
  * qu'un titre s'affiche une fraction de seconde dans la police système.
+ *
+ * Tâche de fond (SM-23) : importer tache-de-fond.ts exécute son defineTask
+ * dès le démarrage (obligatoire : iOS peut réveiller l'appli sans aucun écran) ;
+ * activerTacheDeFond() demande ensuite à iOS de la planifier.
  */
 import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
@@ -23,6 +28,7 @@ import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ThemedView } from "@/components/themed-view";
 import { PoliceTitre } from "@/constants/theme";
 import { AuthProvider, useAuth } from "@/contexts/auth";
+import { activerTacheDeFond } from "@/services/tache-de-fond";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,7 +44,7 @@ function NavigationRacine() {
   const [policesChargees, erreurPolices] = useFonts({
     [PoliceTitre]: require("../../assets/fonts/SpecialElite-Regular.ttf"),
   });
-  // Si la police échoue à charger, on N'BLOQUE PAS l'appli :
+  // Si la police échoue à charger, on NE BLOQUE PAS l'appli :
   // les titres retombent sur la police système, tout reste utilisable.
   const policesPretes = policesChargees || erreurPolices !== null;
 
@@ -78,6 +84,12 @@ function NavigationRacine() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  // Une seule fois au démarrage : planifier la tâche de fond (sans effet dans Expo Go).
+  useEffect(() => {
+    void activerTacheDeFond();
+  }, []);
+
   return (
     <GestureHandlerRootView style={styles.racine}>
       <AuthProvider>
