@@ -16,6 +16,9 @@
  * Tâche de fond (SM-23) : importer tache-de-fond.ts exécute son defineTask
  * dès le démarrage (obligatoire : iOS peut réveiller l'appli sans aucun écran) ;
  * activerTacheDeFond() demande ensuite à iOS de la planifier.
+ *
+ * Verrou Face ID (SM-45) : si une session existait au démarrage, l'appli
+ * s'ouvre sur l'écran de verrouillage (décision dans le hook useVerrou).
  */
 import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
@@ -25,9 +28,11 @@ import { ActivityIndicator, StyleSheet, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { EcranVerrou } from "@/components/ecran-verrou";
 import { ThemedView } from "@/components/themed-view";
 import { PoliceTitre } from "@/constants/theme";
 import { AuthProvider, useAuth } from "@/contexts/auth";
+import { useVerrou } from "@/hooks/use-verrou";
 import { activerTacheDeFond } from "@/services/tache-de-fond";
 
 SplashScreen.preventAutoHideAsync();
@@ -38,6 +43,7 @@ SplashScreen.preventAutoHideAsync();
  */
 function NavigationRacine() {
   const { session, chargement } = useAuth();
+  const connectee = session !== null;
 
   // La clé (PoliceTitre) devient le nom utilisable dans fontFamily.
   // Chemin relatif : assets/ est à la racine du projet, hors de src/.
@@ -48,10 +54,12 @@ function NavigationRacine() {
   // les titres retombent sur la police système, tout reste utilisable.
   const policesPretes = policesChargees || erreurPolices !== null;
 
-  // État « on ne sait pas encore » : Firebase relit la session persistée,
-  // et la police des titres se charge. Sans ça, on afficherait une fraction
-  // de seconde l'écran de connexion à une utilisatrice déjà connectée.
-  if (chargement || !policesPretes) {
+  // Hook appelé AVANT tout « return » (règle des hooks : jamais conditionnel).
+  // « pret » = la session est connue : c'est là que le verrou décide.
+  const verrou = useVerrou(!chargement, connectee);
+
+  // État « on ne sait pas encore » : session, police, ou décision du verrou.
+  if (chargement || !policesPretes || verrou.enCours) {
     return (
       <ThemedView
         style={styles.chargement}
@@ -64,7 +72,9 @@ function NavigationRacine() {
     );
   }
 
-  const connectee = session !== null;
+  if (connectee && verrou.verrouillee) {
+    return <EcranVerrou erreur={verrou.erreur} onDeverrouiller={verrou.reessayer} />;
+  }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
