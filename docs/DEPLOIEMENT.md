@@ -14,7 +14,7 @@
 
 **Règle de compatibilité** : une mise à jour OTA ne s'applique qu'aux builds de **même `runtimeVersion`** (ici `1.0.0`). Tant qu'on n'ajoute aucun module natif, le build existant reçoit toutes les mises à jour.
 
-**Stratégie du projet (« gel natif », SM-44)** : tous les modules natifs nécessaires (caméra, localisation, NetInfo, tâche de fond, gestes…) ont été installés **avant** le premier build, le mardi 17/11. Depuis, tout le reste est livré par OTA — **sans aucun nouveau build**.
+**Stratégie du projet (« gel natif », SM-44)** : tous les modules natifs nécessaires (caméra, localisation, NetInfo, tâche de fond, gestes…) ont été installés **avant** le premier build, le mardi 17/11. Depuis, tout le code a été livré par OTA. Un seul build supplémentaire a été fait, le 19/11 au soir, pour un changement **natif** que l'OTA ne peut pas livrer : l'icône et l'écran de démarrage (SM-56).
 
 ---
 
