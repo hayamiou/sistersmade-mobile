@@ -1,4 +1,5 @@
 import * as Device from 'expo-device';
+import { router } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -60,6 +61,8 @@ export default function HomeScreen() {
             hint={<ThemedText type="code">npm run reset-project</ThemedText>}
           />
         </ThemedView>
+        
+        <Bouton libelle="Publier une demande" onPress={() => router.push('/publier')} />
 
         {/* TEMPORAIRE (SM-12) : bouton de déconnexion pour tester la garde,
             en attendant l'écran « Mon espace » (SM-36), qui le remplacera. */}
