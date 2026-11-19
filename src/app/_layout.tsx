@@ -6,12 +6,14 @@
  *   - (tabs) : l'appli, UNIQUEMENT si une utilisatrice est connectée
  *   - (auth) : inscription / connexion, UNIQUEMENT si personne ne l'est
  *
- * <AuthProvider> enveloppe TOUT : n'importe quel écran peut lire la session
- * avec useAuth(). Il initialise aussi Firebase, via le service auth.
+ * <GestureHandlerRootView> enveloppe TOUT : nécessaire aux gestes (swipe).
+ * <AuthProvider> : n'importe quel écran peut lire la session avec useAuth().
+ * Il initialise aussi Firebase, via le service auth.
  */
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ThemedView } from "@/components/themed-view";
@@ -63,15 +65,18 @@ function NavigationRacine() {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <AnimatedSplashOverlay />
-        <NavigationRacine />
-      </ThemeProvider>
-    </AuthProvider>
+    <GestureHandlerRootView style={styles.racine}>
+      <AuthProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <AnimatedSplashOverlay />
+          <NavigationRacine />
+        </ThemeProvider>
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  racine: { flex: 1 },
   chargement: { flex: 1, alignItems: "center", justifyContent: "center" },
 });

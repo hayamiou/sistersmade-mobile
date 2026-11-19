@@ -71,8 +71,19 @@ service cloud.firestore {
         // Crédit mutuel : solde - durée >= -2 h (DECOUVERT_MAX_HEURES)
         && monProfil().soldeHeures - request.resource.data.dureeEstimee >= -2;
 
-      // Modifier / supprimer : viendront avec l'échange (SM-18 / SM-19).
-      allow update, delete: if false;
+      // « Je peux aider » (SM-24) : une AUTRE utilisatrice se propose sur une
+      // demande encore ouverte et sans aidante. Seuls aidanteId et statut
+      // changent, et elle ne peut inscrire QUE elle-même comme aidante.
+      allow update: if estConnectee()
+        && resource.data.statut == 'ouverte'
+        && resource.data.aidanteId == null
+        && resource.data.autriceId != request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['aidanteId', 'statut'])
+        && request.resource.data.aidanteId == request.auth.uid
+        && request.resource.data.statut == 'en_cours';
+
+      // Supprimer : pas encore (viendra avec « Mes demandes »).
+      allow delete: if false;
     }
   }
 }

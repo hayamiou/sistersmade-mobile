@@ -16,6 +16,7 @@ import {
   query,
   serverTimestamp,
   Timestamp,
+  updateDoc,
 } from "firebase/firestore";
 
 import { DECOUVERT_MAX_HEURES } from "@/constants/banque-temps";
@@ -197,4 +198,30 @@ export function ecouterDemandes(
     },
     surErreur,
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* ACTION — « Je peux aider » (SM-24)                                  */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Une voisine se propose pour aider : la demande passe « en cours »,
+ * avec elle comme aidante. Première étape du cycle de vie d'une demande.
+ *
+ * Les règles Firestore vérifient côté serveur : demande encore ouverte,
+ * sans aidante, pas sa propre demande, et SEULS aidanteId + statut changent.
+ */
+export async function proposerAide(demande: Demande, aidanteId: Uid): Promise<void> {
+  // Contrôles de confort (le serveur, lui, interdira de toute façon).
+  if (demande.autriceId === aidanteId) {
+    throw new ErreurMetier("C'est ta propre demande : tu ne peux pas t'y proposer.");
+  }
+  if (demande.statut !== "ouverte" || demande.aidanteId !== null) {
+    throw new ErreurMetier("Une autre femme s'est déjà proposée pour cette demande.");
+  }
+
+  await updateDoc(doc(db, "demandes", demande.id), {
+    aidanteId,
+    statut: "en_cours",
+  });
 }
