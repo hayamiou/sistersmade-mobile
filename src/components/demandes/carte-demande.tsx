@@ -26,6 +26,8 @@ export function CarteDemande({ demande }: Props) {
   const principale = CATEGORIES.find((c) => c.code === demande.categories[0]);
   const duree = libelleDuree(demande.dureeEstimee);
   const date = demande.creeLe.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  // Commune facultative : on n'ajoute « · 📍 Mérignac » que si elle existe.
+  const lieu = demande.commune ? ` · 📍 ${demande.commune.nom}` : "";;
 
   // Statut affiché en TEXTE + emoji (jamais par la couleur seule).
   const statut =
@@ -39,6 +41,7 @@ export function CarteDemande({ demande }: Props) {
   const annonce =
     `${demande.titre}. Demandée par ${demande.autricePseudo}, le ${date}. ` +
     `Durée estimée : ${duree}.` +
+    (demande.commune ? ` À ${demande.commune.nom}.` : "") +
     (principale ? ` Catégorie : ${principale.libelle}.` : "") +
     (statut ? ` ${statut}.` : "");
 
@@ -55,7 +58,7 @@ export function CarteDemande({ demande }: Props) {
       <ThemedText style={styles.titre}>{demande.titre}</ThemedText>
       <ThemedText numberOfLines={3}>{demande.description}</ThemedText>
       <ThemedText type="small" style={{ color: couleurs.textSecondary }}>
-        {demande.autricePseudo} · {duree} · {date}
+        {demande.autricePseudo} · {duree} · {date}{lieu}
       </ThemedText>
       {statut && <ThemedText type="small" style={styles.statut}>{statut}</ThemedText>}
     </View>

@@ -5,6 +5,7 @@
  * - Ne connaît PAS Firebase : passe par le service demandes (ADR-001).
  * - Trois états visibles (grille de notation) : chargement (bouton occupé),
  *   erreur (message annoncé), succès (écran de confirmation).
+ * - Commune (SM-17) : par position approximative OU saisie manuelle.
  * - Accessible : puces checkbox / radio, coche en plus de la couleur,
  *   bouton « Annuler » en alternative au geste de fermeture.
  */
@@ -13,6 +14,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { SelecteurCommune } from "@/components/demandes/selecteur-commune";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Bouton } from "@/components/ui/bouton";
@@ -31,7 +33,7 @@ import {
   validerDemande,
 } from "@/services/demandes";
 import { CATEGORIES, type Categorie, NB_MAX_CATEGORIES } from "@/types/categories";
-import type { NouvelleDemande } from "@/types/modeles";
+import type { Commune, NouvelleDemande } from "@/types/modeles";
 
 export default function PublierScreen() {
   const { session } = useAuth();
@@ -41,6 +43,7 @@ export default function PublierScreen() {
   const [description, setDescription] = useState("");
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [duree, setDuree] = useState<number | null>(null);
+  const [commune, setCommune] = useState<Commune | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [publiee, setPubliee] = useState(false);
@@ -72,7 +75,7 @@ export default function PublierScreen() {
     setErreur(null);
     setEnvoiEnCours(true);
     try {
-      await publierDemande(session.uid, donnees);
+      await publierDemande(session.uid, donnees, commune);
       setPubliee(true);
     } catch (e) {
       setErreur(messageErreur(e));
@@ -165,6 +168,11 @@ export default function PublierScreen() {
                 />
               ))}
             </View>
+
+            <ThemedText style={styles.section} accessibilityRole="header">
+              Où ? (facultatif)
+            </ThemedText>
+            <SelecteurCommune valeur={commune} onChange={setCommune} desactive={envoiEnCours} />
 
             <MessageErreur message={erreur} />
 

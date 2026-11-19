@@ -80,7 +80,11 @@ export function validerDemande(d: NouvelleDemande): string | null {
  * les règles Firestore vérifient de leur côté qu'il correspond,
  * donc impossible de publier sous le pseudo d'une autre.
  */
-export async function publierDemande(autriceId: Uid, d: NouvelleDemande): Promise<string> {
+export async function publierDemande(
+  autriceId: Uid,
+  d: NouvelleDemande,
+  commune: Commune | null, // facultative : choisie par position ou à la main (SM-17)
+): Promise<string> {
   const profil = await getDoc(doc(db, "utilisatrices", autriceId));
   // unknown + vérification : on ne fait pas confiance à la forme du document.
   const pseudo: unknown = profil.data()?.pseudo;
@@ -112,7 +116,7 @@ export async function publierDemande(autriceId: Uid, d: NouvelleDemande): Promis
     description: d.description.trim(),
     categories: d.categories,
     dureeEstimee: d.dureeEstimee,
-    commune: null, // remplie par SM-17 (localisation + API Géo)
+    commune, // { nom, codeInsee } ou null — jamais de coordonnées
     statut: "ouverte",
     aidanteId: null,
   };

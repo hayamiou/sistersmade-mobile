@@ -64,7 +64,12 @@ service cloud.firestore {
         && request.resource.data.autriceId == request.auth.uid
         && request.resource.data.autricePseudo == monProfil().pseudo
         && demandeValide(request.resource.data)
-        && request.resource.data.commune == null
+        && (request.resource.data.commune == null
+            || (request.resource.data.commune is map
+                && request.resource.data.commune.keys().hasOnly(['nom', 'codeInsee'])
+                && request.resource.data.commune.keys().hasAll(['nom', 'codeInsee'])
+                && request.resource.data.commune.nom is string
+                && request.resource.data.commune.codeInsee is string))
         && request.resource.data.statut == 'ouverte'
         && request.resource.data.aidanteId == null
         && request.resource.data.creeLe == request.time
