@@ -50,6 +50,7 @@ function NavigationRacine() {
           même par un lien. Expo Router redirige vers un écran autorisé. */}
       <Stack.Protected guard={connectee} redirectTo="/connexion">
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="publier" options={{ presentation: "modal" }} />
       </Stack.Protected>
 
       <Stack.Protected guard={!connectee} redirectTo="/">
