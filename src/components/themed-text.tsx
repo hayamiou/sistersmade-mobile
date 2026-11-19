@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
-import { Fonts, ThemeColor } from '@/constants/theme';
+import { Fonts, PoliceTitre, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
@@ -11,7 +11,13 @@ export type ThemedTextProps = TextProps & {
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
 
-  return <Text style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]} {...rest} />;
+  // Les titres prennent la couleur primaire (framboise) par défaut ; le reste, la couleur du texte.
+  // themeColor, s'il est fourni, garde la priorité.
+  const couleurParDefaut: ThemeColor = type === 'title' ? 'primary' : 'text';
+
+  return (
+    <Text style={[{ color: theme[themeColor ?? couleurParDefaut] }, styles[type], style]} {...rest} />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -31,9 +37,11 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    fontFamily: PoliceTitre, // Special Elite, chargée dans _layout.tsx
+    fontSize: 32,
+    lineHeight: 40,
+    // Pas de fontWeight : la police n'existe qu'en « Regular ». Demander du gras
+    // à iOS sur une police sans version grasse peut le faire revenir à la police système.
   },
   subtitle: {
     fontSize: 32,

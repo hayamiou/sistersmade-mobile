@@ -67,3 +67,96 @@
 - **Alternatives** : document externe (risque de décalage avec le code).
 - **Conséquences** : chaque décision structurante ajoute une entrée ici.
 - **À revalider si** : —
+
+---
+
+## ADR-007 — Amendement du 17/11/2026 : réutilisation de l'identité du TP
+
+**Contexte.** Créer un nouvel App ID Apple et un nouveau profil de provisioning demande une intervention de l'enseignant (compte Apple de l'école) et du temps, à 4 jours de la soutenance.
+
+**Décision.** Le projet réutilise l'identité du TP Expo :
+- bundle id iOS / package Android : `fr.cours.tpexpo.muriel` (variante `.preview`) ;
+- projet EAS : `ynov-webmobile/tp-expo-muriel` (`projectId` 3bffded7-…) ;
+- `app.config.js` et `eas.json` repris du TP à l'identique.
+Le nom affiché reste « SistersMade » (`(dev)` / `(preview)` selon la variante).
+
+**Conséquences.**
+- ✅ Le profil de provisioning existant (avec l'UDID de l'iPhone de test) reste valable.
+- ⚠️ Le `slug` doit rester `tp-expo-muriel` : EAS refuse un slug différent de celui lié au `projectId`.
+- ⚠️ Le profil n'inclut pas la capacité Push : pas de notifications distantes sans nouvelle démarche.
+- 🔁 En 2027 (projet RNCP), identité dédiée `SistersMade` à créer.
+
+---
+
+## ADR-009 — Stratégie de branches, conventions de commit et suivi des tickets
+
+**Contexte.** SistersMade devient le projet de fin d'études RNCP 7 (2027). L'historique Git doit montrer une méthode de travail d'équipe, même en développant seule.
+
+**Décision.**
+- **Git flow allégé** :
+  - `main` : versions stables uniquement, taguées (`v0.1.0` = soutenance mobile) ;
+  - `develop` : branche d'intégration, branche par défaut sur GitHub ;
+  - `feature/SM-XX-…`, `fix/SM-XX-…`, `docs/SM-XX-…` : une branche par ticket, créée depuis `develop`, fusionnée par Pull Request.
+- **Conventional Commits** : `type(scope): description [SM-XX]`, avec `type` ∈ feat, fix, docs, chore, refactor, test, style.
+- **Tickets Notion** (base « Tickets SistersMade ») : identifiant `SM-XX`, reporté dans la branche, le commit et la PR.
+- Pas de branches `release/` ni `hotfix/` à ce stade : réévaluation pour le projet RNCP.
+
+**Conséquences.**
+- ✅ Chaque ligne de code remonte à un ticket, donc à un besoin.
+- ✅ Les PR documentent le *pourquoi* des changements.
+- ℹ️ Les 3 premiers commits (`cd6f4da`, `2ebb9d9`, `dd58fe8`) sont antérieurs à la convention : l'historique n'est pas réécrit.
+
+---
+
+## ADR-010 — Hors-ligne : « stale-while-revalidate » maison (amende ADR-005)
+
+**Contexte.** L'ADR-005 prévoyait TanStack Query pour le cache et le hors-ligne. Mais la liste des demandes repose sur `onSnapshot` (temps réel Firestore), qui pousse lui-même les mises à jour : TanStack Query est pensé pour des requêtes ponctuelles qu'on relance (`invalidateQueries`), pas pour un flux continu. L'obligation « offline » de la grille impose surtout d'afficher des données sans réseau, et d'informer l'utilisatrice.
+
+**Décision.**
+- Stratégie **stale-while-revalidate** dans le hook `useDemandes` : la dernière liste enregistrée (AsyncStorage, `services/cache-demandes.ts`) s'affiche tout de suite, puis est remplacée par la réponse de Firestore.
+- **Hors ligne** (`services/connexion.ts` + `useConnexion`, via NetInfo) : les réponses de Firestore sont ignorées (elles viennent de sa mémoire et peuvent être vides : elles écraseraient le cache) ; bandeau explicatif ; actions d'écriture (publier, se proposer) désactivées, car une écriture Firestore hors ligne resterait en attente sans fin.
+- Le cache est relu en `unknown` et validé par type guards (jamais de `as Demande[]`).
+- TanStack Query n'est **pas** utilisé dans le MVP.
+
+**Conséquences.**
+- ✅ Obligation « offline » remplie sans nouvelle dépendance ; ouverture instantanée de l'accueil, même en ligne.
+- ✅ Même motif « observateur » que la session (`ecouterSession`, `ecouterDemandes`, `ecouterConnexion`).
+- ⚠️ Pas de file d'actions hors ligne (SM-22, reportée) : on ne peut ni publier ni aider sans réseau.
+- ⚠️ Au retour du réseau, si rien n'a changé côté serveur, Firestore ne renvoie pas forcément de réponse : la liste du cache reste affichée (identique).
+- **À revalider si** : de nouveaux écrans font des lectures ponctuelles (détail d'une demande, Mon espace) → TanStack Query redevient pertinent pour ces requêtes.
+
+---
+
+## ADR-011 — Thème centralisé et accessible
+
+**Contexte.** La grille note le *theming* et la qualité des composants ; la charte du projet impose des contrastes AA en clair et en sombre, et jamais d'information par la couleur seule.
+
+**Décision.**
+- Toutes les couleurs dans `constants/theme.ts`, lues via le hook `useTheme()` ; aucune couleur codée en dur dans les composants.
+- Clés nommées par **rôle** (`primary`, `action`), pas par couleur ; couleurs **`onPrimary` / `onAction`** pour le texte posé sur un bouton (le bouton s'éclaircit en sombre, le texte s'assombrit).
+- Chaque paire texte / fond vérifiée par calcul de contraste WCAG (≥ 4,5:1).
+- Titres en **Special Elite** (Google Fonts, licence Apache 2.0, accents français vérifiés), chargée par `useFonts` avec dégradation gracieuse ; texte courant en police système (lisibilité, dyslexie).
+- Pas de bibliothèque d'UI : le thème s'applique à nos propres composants.
+
+**Conséquences.**
+- ✅ Changer une valeur du thème repeint toute l'appli sans toucher un écran.
+- ✅ Contraste garanti dans les deux modes.
+- ⚠️ La police du logo (Dream Home, démo « usage personnel ») n'est pas utilisée dans l'appli ; le logo lui-même devra être relicencié ou redessiné avant un lancement réel.
+- **À revalider si** : passe de design en 2027 (illustrations, couleur d'action).
+
+---
+
+## ADR-012 — Tâche de fond : rafraîchir le cache hors-ligne
+
+**Contexte.** La grille exige au moins une tâche en arrière-plan. Le cache de l'ADR-010 n'est mis à jour que lorsque l'appli est ouverte en ligne.
+
+**Décision.**
+- `expo-background-task` + `expo-task-manager` (installés au gel natif, plugin déclaré dans `app.json`).
+- La tâche (`services/tache-de-fond.ts`) est définie à la portée globale du module, importé au démarrage ; planifiée avec un intervalle minimal de 30 min.
+- À chaque réveil : attendre que Firebase ait relu la session (sinon les règles refusent la lecture), charger la liste une fois (`chargerDemandes`, même requête que l'écoute grâce à `requeteListe()`), l'enregistrer dans le cache.
+- « Best effort » : sans effet dans Expo Go (module absent), échecs ignorés.
+
+**Conséquences.**
+- ✅ À l'ouverture hors ligne, les demandes affichées sont récentes.
+- ⚠️ iOS décide du moment réel (batterie, usage) : `minimumInterval` est un minimum, pas une promesse.
+- ⚠️ Non testable dans Expo Go ni déclenchable à la demande dans un build de production : vérification par le code et par Réglages iOS → Actualisation en arrière-plan.

@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "fr.cours.tpexpo.muriel"
+      "bundleIdentifier": "fr.cours.tpexpo.muriel",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -34,6 +37,40 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      "expo-background-task",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SistersMade utilise l'appareil photo pour scanner le QR code qui valide un échange de temps entre deux membres.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SistersMade utilise ta position approximative pour trouver ta commune et te montrer les demandes d'entraide près de chez toi. Ta position exacte n'est jamais enregistrée.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "isIosReducedAccuracyByDefault": true,
+          "locationFullAccuracyPermission": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "SistersMade utilise Face ID pour protéger l'accès à ton compte."
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "SistersMade ajoute à ton agenda les rendez-vous d'entraide que tu acceptes, pour que tu ne les oublies pas.",
+          "remindersPermission": false
+        }
       ]
     ],
     "experiments": {
@@ -45,6 +82,12 @@
       "eas": {
         "projectId": "3bffded7-8e4b-4391-8b8a-cf3d1b53e378"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3bffded7-8e4b-4391-8b8a-cf3d1b53e378"
     }
   }
 }
