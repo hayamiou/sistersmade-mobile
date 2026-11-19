@@ -1,6 +1,15 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
+ * Thème SistersMade (SM-8) — couleurs des modes clair et sombre.
+ *
+ * Sources de la palette :
+ *  - palette historique du projet → framboise (#C2185B, version AA du #E91E63) ;
+ *  - illustration d'inspiration → crème, rose poudré, bleu nuit, vert sapin ;
+ *  - logo → le dégradé corail/rose reste réservé au logo (image).
+ *
+ * Règle d'accessibilité : chaque paire texte/fond ci-dessous a été vérifiée
+ * au contraste WCAG AA (≥ 4,5:1 pour le texte). Les ratios sont notés en commentaire.
+ * ⚠️ « primary » et « action » sont des couleurs de FOND de bouton :
+ * on écrit dessus avec « onPrimary » / « onAction », jamais du texte bleu nuit.
  */
 
 import '@/global.css';
@@ -9,18 +18,30 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    // --- Clés du template (utilisées par tous les composants existants) ---
+    text: '#002A40', //                bleu nuit — 14,4:1 sur le fond, 10,3:1 sur les cartes
+    background: '#FEFAF2', //          crème
+    backgroundElement: '#F5CDCA', //   rose poudré — cartes, champs
+    backgroundSelected: '#EBB3AF', //  rose plus soutenu — puce sélectionnée (texte 8,3:1)
+    textSecondary: '#5A4A52', //       8,0:1 sur le fond, 5,7:1 sur les cartes
+
+    // --- Ajouts SistersMade ---
+    primary: '#C2185B', //             framboise — boutons principaux
+    onPrimary: '#FFFFFF', //           texte sur framboise — 5,9:1
+    action: '#1C725E', //              vert sapin — « Je peux aider » (remplace VERT_ACTION)
+    onAction: '#FFFFFF', //            texte sur vert sapin — 5,8:1
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F2E9EC', //                15,3:1 sur le fond, 8,9:1 sur la sélection
+    background: '#1A1416', //          aubergine très sombre
+    backgroundElement: '#3A2A2E', //   cartes, champs — texte 11,4:1
+    backgroundSelected: '#4E3940', //  puce sélectionnée
+    textSecondary: '#B8A9B0', //       8,1:1 sur le fond, 6,0:1 sur les cartes
+
+    primary: '#F06292', //             framboise claire
+    onPrimary: '#1A1416', //           texte SOMBRE sur bouton clair — 5,9:1
+    action: '#5FC4A6', //              vert sapin clair
+    onAction: '#1A1416', //            8,6:1
   },
 } as const;
 
