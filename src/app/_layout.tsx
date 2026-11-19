@@ -9,7 +9,11 @@
  * <GestureHandlerRootView> enveloppe TOUT : nécessaire aux gestes (swipe).
  * <AuthProvider> : n'importe quel écran peut lire la session avec useAuth().
  * Il initialise aussi Firebase, via le service auth.
+ *
+ * Police des titres (SM-8) : chargée ICI, avant tout écran, pour éviter
+ * qu'un titre s'affiche une fraction de seconde dans la police système.
  */
+import { useFonts } from "expo-font";
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { ActivityIndicator, StyleSheet, useColorScheme } from "react-native";
@@ -17,6 +21,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { ThemedView } from "@/components/themed-view";
+import { PoliceTitre } from "@/constants/theme";
 import { AuthProvider, useAuth } from "@/contexts/auth";
 
 SplashScreen.preventAutoHideAsync();
@@ -28,10 +33,19 @@ SplashScreen.preventAutoHideAsync();
 function NavigationRacine() {
   const { session, chargement } = useAuth();
 
-  // État « on ne sait pas encore » : Firebase relit la session persistée.
-  // Sans ça, on afficherait une fraction de seconde l'écran de connexion
-  // à une utilisatrice déjà connectée.
-  if (chargement) {
+  // La clé (PoliceTitre) devient le nom utilisable dans fontFamily.
+  // Chemin relatif : assets/ est à la racine du projet, hors de src/.
+  const [policesChargees, erreurPolices] = useFonts({
+    [PoliceTitre]: require("../../assets/fonts/SpecialElite-Regular.ttf"),
+  });
+  // Si la police échoue à charger, on N'BLOQUE PAS l'appli :
+  // les titres retombent sur la police système, tout reste utilisable.
+  const policesPretes = policesChargees || erreurPolices !== null;
+
+  // État « on ne sait pas encore » : Firebase relit la session persistée,
+  // et la police des titres se charge. Sans ça, on afficherait une fraction
+  // de seconde l'écran de connexion à une utilisatrice déjà connectée.
+  if (chargement || !policesPretes) {
     return (
       <ThemedView
         style={styles.chargement}

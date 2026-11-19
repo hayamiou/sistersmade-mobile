@@ -28,8 +28,8 @@ export const Colors = {
     // --- Ajouts SistersMade ---
     primary: '#C2185B', //             framboise — boutons principaux
     onPrimary: '#FFFFFF', //           texte sur framboise — 5,9:1
-    action: '#1C725E', //              vert sapin — « Je peux aider » (remplace VERT_ACTION)
-    onAction: '#FFFFFF', //            texte sur vert sapin — 5,8:1
+    action: '#002A40', //              bleu nuit (illustration) — « Je peux aider »
+    onAction: '#FFFFFF', //            texte sur bleu nuit — 14,9:1
   },
   dark: {
     text: '#F2E9EC', //                15,3:1 sur le fond, 8,9:1 sur la sélection
@@ -40,8 +40,8 @@ export const Colors = {
 
     primary: '#F06292', //             framboise claire
     onPrimary: '#1A1416', //           texte SOMBRE sur bouton clair — 5,9:1
-    action: '#5FC4A6', //              vert sapin clair
-    onAction: '#1A1416', //            8,6:1
+    action: '#A7D3F0', //              bleu ciel — bleu nuit inversé pour le mode sombre
+    onAction: '#1A1416', //            11,4:1 (bouton sur carte sombre : 8,5:1)
   },
 } as const;
 
@@ -71,6 +71,14 @@ export const Fonts = Platform.select({
     mono: 'var(--font-mono)',
   },
 });
+
+
+/**
+ * Police des titres (SM-8) : Special Elite — Google Fonts, licence Apache 2.0.
+ * Ce nom doit être IDENTIQUE à la clé passée à useFonts() dans _layout.tsx.
+ * Réservée aux titres : texte courant en police système (lisibilité, dyslexie).
+ */
+export const PoliceTitre = "SpecialElite";
 
 export const Spacing = {
   half: 2,
