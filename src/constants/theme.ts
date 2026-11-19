@@ -72,6 +72,14 @@ export const Fonts = Platform.select({
   },
 });
 
+
+/**
+ * Police des titres (SM-8) : Special Elite — Google Fonts, licence Apache 2.0.
+ * Ce nom doit être IDENTIQUE à la clé passée à useFonts() dans _layout.tsx.
+ * Réservée aux titres : texte courant en police système (lisibilité, dyslexie).
+ */
+export const PoliceTitre = "SpecialElite";
+
 export const Spacing = {
   half: 2,
   one: 4,
