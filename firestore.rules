@@ -87,8 +87,12 @@ service cloud.firestore {
         && request.resource.data.aidanteId == request.auth.uid
         && request.resource.data.statut == 'en_cours';
 
-      // Supprimer : pas encore (viendra avec « Mes demandes »).
-      allow delete: if false;
+      // Supprimer (SM-65) : SEULE son autrice, et seulement tant que la demande
+      // est ouverte et sans aidante (une femme engagée ne reste pas sans nouvelles).
+      allow delete: if estConnectee()
+        && resource.data.autriceId == request.auth.uid
+        && resource.data.statut == 'ouverte'
+        && resource.data.aidanteId == null;
     }
   }
 }
