@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   title: {
-    fontFamily: PoliceTitre, // Special Elite, chargée dans _layout.tsx
+    fontFamily: PoliceTitre, // Fredoka SemiBold, chargée dans _layout.tsx
     fontSize: 32,
     lineHeight: 40,
     // Pas de fontWeight : la police n'existe qu'en « Regular ». Demander du gras
