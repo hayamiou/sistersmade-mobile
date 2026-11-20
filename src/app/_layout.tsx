@@ -80,7 +80,7 @@ function NavigationRacine() {
     <Stack screenOptions={{ headerShown: false }}>
       {/* guard = false → ces écrans n'existent plus : impossible d'y aller,
           même par un lien. Expo Router redirige vers un écran autorisé. */}
-      <Stack.Protected guard={connectee} redirectTo="/connexion">
+      <Stack.Protected guard={connectee} redirectTo="/bienvenue">
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="publier" options={{ presentation: "modal" }} />
       </Stack.Protected>
@@ -88,6 +88,8 @@ function NavigationRacine() {
       <Stack.Protected guard={!connectee} redirectTo="/">
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
+            {/* HORS des gardes : l'accueil est visible connectée ou pas (SM-64). */}
+      <Stack.Screen name="bienvenue" />
     </Stack>
   );
 }
