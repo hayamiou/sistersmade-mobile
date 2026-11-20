@@ -78,7 +78,7 @@ export const Fonts = Platform.select({
  * Ce nom doit être IDENTIQUE à la clé passée à useFonts() dans _layout.tsx.
  * Réservée aux titres : texte courant en police système (lisibilité, dyslexie).
  */
-export const PoliceTitre = "SpecialElite";
+export const PoliceTitre = "Fredoka"; // Fredoka SemiBold (Google Fonts, licence OFL), ronde comme le logo
 
 export const Spacing = {
   half: 2,

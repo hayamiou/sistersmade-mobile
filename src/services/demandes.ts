@@ -8,6 +8,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -229,6 +230,26 @@ export async function proposerAide(demande: Demande, aidanteId: Uid): Promise<vo
     aidanteId,
     statut: "en_cours",
   });
+}
+
+/**
+ * L'autrice supprime SA demande (SM-65), tant que personne ne s'est proposée.
+ * Une fois qu'une aidante s'est engagée, supprimer la laisserait sans nouvelles :
+ * on l'interdit.
+ *
+ * Les règles Firestore vérifient côté serveur exactement la même chose :
+ * c'est bien son autrice, la demande est ouverte et sans aidante.
+ */
+export async function supprimerDemande(demande: Demande, autriceId: Uid): Promise<void> {
+  // Contrôles de confort (le serveur, lui, interdira de toute façon).
+  if (demande.autriceId !== autriceId) {
+    throw new ErreurMetier("Tu ne peux supprimer que tes propres demandes.");
+  }
+  if (demande.statut !== "ouverte" || demande.aidanteId !== null) {
+    throw new ErreurMetier("Une femme s'est déjà proposée : cette demande ne peut plus être supprimée.");
+  }
+
+  await deleteDoc(doc(db, "demandes", demande.id));
 }
 
 /**
